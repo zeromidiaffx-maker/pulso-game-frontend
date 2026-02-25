@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PULSO - Matrix Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: #0d0d0d;
+            color: #00ff41;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Matrix Background */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: glitch 3s infinite;
+        }
+        
+        .logo {
+            font-size: 64px;
+            font-weight: 900;
+            text-shadow: 
+                0 0 10px #00ff41,
+                0 0 20px #00ff41,
+                0 0 30px #00ff41;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            font-size: 14px;
+            color: #00d4ff;
+            letter-spacing: 4px;
+            opacity: 0.8;
+        }
+        
+        /* Cards */
+        .card {
+            background: rgba(0, 255, 65, 0.05);
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 
+                0 0 20px rgba(0, 255, 65, 0.2),
+                inset 0 0 20px rgba(0, 255, 65, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Inputs */
+        input {
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00ff41;
+            border-radius: 10px;
+            color: #00ff41;
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+            border-color: #00d4ff;
+        }
+        
+        input::placeholder {
+            color: rgba(0, 255, 65, 0.4);
+        }
+        
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 18px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff41, #00d4ff);
+            color: #0d0d0d;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 30px rgba(0, 255, 65, 0.7);
+        }
+        
+        .btn-blue {
+            background: #00d4ff;
+            color: #0d0d0d;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .btn-blue:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 30px rgba(0, 212, 255, 0.7);
+        }
+        
+        .btn-danger {
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        
+        .btn-danger:hover {
+            background: rgba(255, 0, 0, 1);
+            transform: translateY(-3px);
+        }
+        
+        /* Info Display */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-item {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 12px;
+            color: #00d4ff;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+        
+        .info-value {
+            font-size: 24px;
+            font-weight: 700;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        
+        /* Game Area */
+        .game-container {
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00ff41;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pulse-zone {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0,255,65,0.1) 0%, rgba(0,0,0,0.8) 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .pulse-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00ff41, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+            animation: pulse-glow 2s infinite;
+        }
+        
+        .pulse-circle:hover {
+            transform: scale(1.1);
+        }
+        
+        .pulse-circle:active {
+            transform: scale(0.95);
+            animation: hit-flash 0.3s;
+        }
+        
+        .hit-counter {
+            font-size: 72px;
+            font-weight: 900;
+            color: #0d0d0d;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 
+                    0 0 20px #00ff41,
+                    0 0 40px #00ff41,
+                    0 0 60px #00ff41;
+            }
+            50% {
+                box-shadow: 
+                    0 0 30px #00d4ff,
+                    0 0 60px #00d4ff,
+                    0 0 90px #00d4ff;
+            }
+        }
+        
+        @keyframes hit-flash {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(2); }
+        }
+        
+        .multiplier-display {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 900;
+            color: #00d4ff;
+            text-shadow: 
+                0 0 10px #00d4ff,
+                0 0 20px #00d4ff,
+                0 0 30px #00d4ff;
+            margin: 20px 0;
+            animation: pulse-text 1s infinite;
+        }
+        
+        @keyframes pulse-text {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 2px solid #ff0000;
+            color: #ff6b6b;
+        }
+        
+        .alert-success {
+            background: rgba(0, 255, 65, 0.2);
+            border: 2px solid #00ff41;
+            color: #00ff41;
+        }
+        
+        /* Animations */
+        @keyframes glitch {
+            0%, 100% { text-shadow: 0 0 10px #00ff41; }
+            25% { text-shadow: -2px 0 10px #00ff41, 2px 0 10px #00d4ff; }
+            50% { text-shadow: 2px 0 10px #00ff41, -2px 0 10px #00d4ff; }
+            75% { text-shadow: -2px 0 10px #00d4ff, 2px 0 10px #00ff41; }
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background -->
+    <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">PULSO</div>
+            <div class="tagline">MATRIX EDITION</div>
+        </div>
+
+        <!-- Auth Screen -->
+        <div id="authScreen" class="screen active">
+            <div class="card">
+                <div class="alert alert-error" id="authError"></div>
+                <input type="email" id="emailInput" placeholder="E-MAIL">
+                <input type="password" id="passwordInput" placeholder="SENHA">
+                <button class="btn-primary" onclick="login()">ENTRAR</button>
+                <button class="btn-blue" onclick="register()">CRIAR CONTA</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="card">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">SALDO</div>
+                        <div class="info-value" id="balance">R$ 0.00</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">USUÁRIO</div>
+                        <div class="info-value" id="userEmail" style="font-size: 14px;">-</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-error" id="gameError"></div>
+                <div class="alert alert-success" id="gameSuccess"></div>
+
+                <!-- Bet Area -->
+                <div id="betArea">
+                    <input type="number" id="betAmount" placeholder="VALOR DA APOSTA" min="1" step="0.01">
+                    <button class="btn-primary" onclick="startGame()">INICIAR JOGO</button>
+                </div>
+
+                <!-- Play Area -->
+                <div id="playArea" style="display:none;">
+                    <div class="game-container">
+                        <div class="multiplier-display" id="multiplierDisplay">1.0x</div>
+                        <div class="pulse-zone">
+                            <div class="pulse-circle" onclick="hit()">
+                                <div class="hit-counter" id="hitNumber">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-blue" onclick="cashout()">
+                        💰 SACAR AGORA - R$ <span id="potentialPayout">0.00</span>
+                    </button>
+                    <button class="btn-danger" onclick="resetGame()">CANCELAR</button>
+                </div>
+
+                <button class="btn-danger" onclick="logout()" style="margin-top: 30px;">SAIR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pulso-game-production-0a3d.up.railway.app';
+        let token = localStorage.getItem('token');
+        let currentMatchId = null;
+        let currentMultiplier = 1;
+        let currentBet = 0;
+        let hitCount = 0;
+        let heartbeatInterval = null;
+
+        // Matrix Background Effect
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrix = "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(13, 13, 13, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrix[Math.floor(Math.random() * matrix.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        // Audio Context for Heartbeat
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playHeartbeat(speed = 1) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 80;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function startHeartbeat(bpm = 60) {
+            stopHeartbeat();
+            const interval = (60 / bpm) * 1000;
+            heartbeatInterval = setInterval(() => playHeartbeat(), interval);
+        }
+
+        function stopHeartbeat() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+        }
+
+        // Check if logged in
+        if (token) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user) {
+                showGameScreen(user);
+            }
+        }
+
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('gameSuccess');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        async function register() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showError('authError', 'PREENCHA EMAIL E SENHA!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    showError('authError', '✅ CONTA CRIADA! FAÇA LOGIN.');
+                } else {
+                    showError('authError', data.erro || 'ERRO AO CRIAR CONTA');
+                }
+            } catch (error) {
+                showError('authError', 'ERRO DE CONEXÃO!');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showError('authError', 'PREENCHA EMAIL E SENHA!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.ok && data.token) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showGameScreen(data.user);
+                } else {
+                    showError('authError', data.erro || 'EMAIL OU SENHA INCORRETOS');
+                }
+            } catch (error) {
+                showError('authError', 'ERRO DE CONEXÃO!');
+            }
+        }
+
+        function showGameScreen(user) {
+            document.getElementById('authScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('balance').textContent = `R$ ${parseFloat(user.wallet_balance).toFixed(2)}`;
+        }
+
+        async function startGame() {
+            const betAmount = parseFloat(document.getElementById('betAmount').value);
+
+            if (!betAmount || betAmount <= 0) {
+                showError('gameError', 'DIGITE UM VALOR VÁLIDO!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/game/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ bet_amount: betAmount })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    currentMatchId = data.match_id;
+                    currentBet = betAmount;
+                    currentMultiplier = 1;
+                    hitCount = 0;
+                    document.getElementById('betArea').style.display = 'none';
+                    document.getElementById('playArea').style.display = 'block';
+                    document.getElementById('multiplierDisplay').textContent = '1.0x';
+                    document.getElementById('hitNumber').textContent = '0';
+                    document.getElementById('potentialPayout').textContent = betAmount.toFixed(2);
+                    updateBalance(-betAmount);
+                    startHeartbeat(60);
+                } else {
+                    showError('gameError', data.erro || 'ERRO AO INICIAR JOGO');
+                }
+            } catch (error) {
+                showError('gameError', 'ERRO DE CONEXÃO!');
+            }
+        }
+
+        async function hit() {
+            playHeartbeat();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/game/hit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ match_id: currentMatchId })
+                });
+
+                const data = await response.json();
+
+                if (data.ok && data.result === 'hit') {
+                    hitCount = data.hit_number;
+                    currentMultiplier = parseFloat(data.current_multiplier);
+                    document.getElementById('hitNumber').textContent = hitCount;
+                    document.getElementById('multiplierDisplay').textContent = currentMultiplier.toFixed(1) + 'x';
+                    document.getElementById('potentialPayout').textContent = data.potential_payout;
+                    showSuccess(`🎯 ACERTO ${hitCount}! MULTIPLICADOR: ${currentMultiplier}x`);
+                    
+                    // Increase heartbeat speed
+                    const newBpm = 60 + (hitCount * 10);
+                    startHeartbeat(newBpm);
+                } else {
+                    showError('gameError', '❌ ERROU! VOCÊ PERDEU R$ ' + currentBet.toFixed(2));
+                    stopHeartbeat();
+                    setTimeout(resetGame, 2000);
+                }
+            } catch (error) {
+                showError('gameError', 'ERRO DE CONEXÃO!');
+            }
+        }
+
+        async function cashout() {
+            stopHeartbeat();
+            
+            try {
+                const response = await fetch(`${API_URL}/api/game/cashout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ match_id: currentMatchId })
+                });
+
+                const data = await response.json();
+
+                if (data.ok) {
+                    showSuccess(`💰 VOCÊ GANHOU R$ ${data.payout}! LUCRO: R$ ${data.profit}`);
+                    updateBalance(parseFloat(data.payout));
+                    setTimeout(resetGame, 3000);
+                } else {
+                    showError('gameError', data.erro || 'ERRO AO RETIRAR');
+                }
+            } catch (error) {
+                showError('gameError', 'ERRO DE CONEXÃO!');
+            }
+        }
+
+        function resetGame() {
+            stopHeartbeat();
+            document.getElementById('betArea').style.display = 'block';
+            document.getElementById('playArea').style.display = 'none';
+            currentMatchId = null;
+            currentMultiplier = 1;
+            hitCount = 0;
+            document.getElementById('betAmount').value = '';
+        }
+
+        function updateBalance(amount) {
+            const balanceEl = document.getElementById('balance');
+            const currentBalance = parseFloat(balanceEl.textContent.replace('R$ ', ''));
+            const newBalance = currentBalance + amount;
+            balanceEl.textContent = `R$ ${newBalance.toFixed(2)}`;
+        }
+
+        function logout() {
+            stopHeartbeat();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
